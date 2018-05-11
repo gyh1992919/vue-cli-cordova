@@ -4,15 +4,17 @@
       <div class="loginarea">
         <div class="inputarea">
           <div class="inputarea-user">
+            <div class="inputarea-icon"></div>
             <input type="text" placeholder="请输入手机号" v-model="userInfo.phone">
-            <img class="inputarea-icon" src="../../assets/icon/phone@3x.png" alt="" >
           </div>
           <div class="inputarea-password">
+            <div class="code-icon"></div>
             <input type="number" placeholder="请输入验证码" v-model="userInfo.code">
-            <img class="inputarea-icon"  src="../../assets/icon/lock@3x.png" alt="" >
-            <button @click="clickedFun(60)" :disabled="clicked" class="verification" :class="{ 'clicked': clicked}">发送验证码 <span v-if="clicked">{{sendMseDisabled}}s</span> </button>
+            <mt-button size="small"  @click="reqCode" :disabled="buttonDisable"  class="verification" >{{buttonText}}</mt-button>
           </div>
-          <button @click="login" :disabled="!(userInfo.phone && userInfo.code)">登录</button>
+          <div class="confirm-btn">
+            <mt-button @click="login" :disabled="!(userInfo.phone && userInfo.code)" class="btn">登录</mt-button>
+          </div>
         </div>
         <div class="bottom">
           <p>纸象优惠 V20.0正式版</p>
@@ -23,8 +25,11 @@
 </template>
 
 <script>
+  import getCodes from '@/mixins/getCodes'
+  import { Toast } from 'mint-ui';
   export default {
     name: 'login',
+    mixins: [getCodes],
     data () {
       return {
         userInfo: {
@@ -37,35 +42,20 @@
         sendMseDisabled: 0
       }
     },
-    created () {
-    },
     methods: {
-      login () {
-        this.$http.post('/common/v1/accounts/login', this.userInfo).then(
-          res => {
-            console.log(res.data)
-            console.log(res.data.store)
-            this.$store.dispatch('login', res.data)
-            if (res.data.store && res.data.store.status === 1 && res.data.store.step === 0) {
-              this.$store.dispatch('storeinfochange', res.data.store)
-              this.$router.push({name: 'register', params: { register: 'success' }})
-            } else if (res.data.store && res.data.store.status === 0) {
-              this.$store.dispatch('storeinfochange', res.data.store)
-              this.$router.push({name: 'register', params: { register: 'holdon' }})
-            } else if (res.data.store && res.data.store.status === 1 && res.data.store.step === 1) {
-              this.$store.dispatch('storeinfochange', res.data.store)
-              this.$router.push({name: 'home'})
-            } else {
-              this.$router.push({name: 'register'})
-            }
-          }
-          ).catch(err => {
-            console.log(err.response.data.message)
-            this.$toast({
-              message: err.response.data.message,
-              position: 'top',
-              duration: 3000
-            })
+      reqCode() {
+          let api =  this.$http.post('/common/v1/login-codes', this.userInfo.phone)
+          this.getCode(api)
+      },
+      async login () {
+        this.$http.post('/common/v1/accounts/login', this.userInfo)
+          .then(res => {
+              const {token} = res.data
+              localStorage.setItem("token", token);
+          })
+          .catch(err => {
+            const {message} = err.response.data
+            window.plugins.toast.showWithOptions({message: message});
           })
       },
       clickedFun (s) {
@@ -107,78 +97,78 @@
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
-
+  @import "../../stylus/mixin.styl"
     #login
       width:100%;
       height:100vh;
-      position: relative
+      position: relative;
       .colorfix
         background: #031425
         background-image: url("../../assets/images/login_bg.jpg")
-        background-size: 375px 360px;
+        background-size: 750px 720px;
         height: 100%
         width: 100%
+        background-repeat: no-repeat
         background-position: center top
-      .bottom{
-        padding-top:1.5rem
-        p{
-            color #a0a3b2
-            line-height .75rem
-            font-size .2rem
-            background: #f7faff
-            text-align center
-          }
-        }
+        .bottom
+          position: absolute
+          bottom: 0
+          width: 100%
+          height: 74px
+          line-height: 74px
+          font-size: 20px
+          color: #161829
+          background: #f7faff
+          text-align: center
         .loginarea
           position: absolute
           bottom: 0
           left: 0
           width: 100%
-          padding-left .3rem
-          padding-right .3rem
+          height: 577px
           padding-top 1.1rem
-          border-top-left-radius:.16rem
-          border-top-right-radius:.16rem
+          border-radius: 20px
           background #ffffff
           .inputarea
-            padding-left .3rem
-            padding-right .3rem
-            .inputarea-user,.inputarea-password{
+            margin: 90px 72px 168px 77px
+            .inputarea-user,.inputarea-password
               position: relative
-            }
-            .inputarea-icon{
-              width:.2rem;
-              height:.28rem;
-              position: absolute
-              left:0;
-              top:.28rem;
-            }
-            .verification{
-              position: absolute;
-              right:0
-              top:.2rem
-              width:1.62rem
-              height:.45rem
-              line-height:.45rem;
-              border-radius .1rem
-              color: #33a1ff
-              border:1px solid #33a1ff
-              background #ffffff
-              font-size:.22rem
-            }
-            .verification.clicked{
-              width:2rem
+              display: flex
+              align-items: center
+              border-bottom 1px solid #ebedf3
+            .inputarea-password
+              margin-top: 40px
+            .inputarea-icon
+              width: 19px
+              height: 28px
+              display: inline-block
+              background-size: 19px 28px
+              bg-image('../../assets/icon/login-phone')
+            .code-icon
+              width: 22px
+              height: 28px
+              display: inline-block
+              background-size: 22px 28px
+              bg-image('../../assets/icon/code')
+            .verification
+              font-size: 24px
+              height: 45px
+              line-height: 45px
+              border: 1px solid #5cb4ff
+              color: #5cb4ff
+              background-color: transparent
+              border-radius: 10px
+            .verification[disabled]{
               color: #a0a3b2
-              border:1px solid #a0a3b2
-              background #ffffff
+              border-color: #a0a3b2
             }
             input
               width 100%
               height .85rem
               line-height .85rem
-              font-size .26rem
-              text-indent .48rem
-              border-bottom 1px solid #ebedf3
+              font-size 26px
+              margin-left: 30px
+              flex: 1
             input::-webkit-input-placeholder { /* WebKit browsers */
               color:    #cccccc;
                 }
@@ -191,17 +181,19 @@
             input:-ms-input-placeholder { /* Internet Explorer 10+ */
               color:    #cccccc;
             }
-            input:first-child
-              margin-bottom .3rem
-            input:nth-child(2)
-              margin-bottom .9rem
-            button
-              width 100%
-              height .85rem
-              background: #33a1ff
-              color #fff
-              border-radius .1rem
-            button[disabled]
-              background #cccccc
+            .confirm-btn
+              margin-top: 70px
+              .btn
+                width 100%
+                border-radius: 10px
+                height: 80px
+                color #fff
+                font-size: 24px
+                line-height: 80px
+                background-image: linear-gradient( 15deg, rgb(0,180,254) 1%,rgb(51,161,255) 100%);
+                box-shadow: 0 -1px 20px rgba(51,161,255, 0.4)
+                border: none
+              .btn[disabled]
+                opacity: 0.5
 
 </style>

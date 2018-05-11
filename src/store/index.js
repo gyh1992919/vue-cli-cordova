@@ -14,15 +14,15 @@ const state = {
   Store: storeinfo || {},
   Wallet: walletinfo || {}
 }
-console.log(state.Logined.token)
-Axios.defaults.headers.common['X-Access-Token'] = state.Logined.token
+// console.log(state.Logined.token)
+
 // 创建改变状态的方法
 const mutations = {
   // 登录功能
   LOGIN (state, userInfo) {
     state.Logined = userInfo
     localstorage.setItem('login', state.Logined)
-    Axios.defaults.headers.common['X-Access-Token'] = state.Logined.token
+    // Axios.defaults.headers.common['X-Access-Token'] = state.Logined.token
   },
   LOGOUT (state) {
     localstorage.clearItem('login')

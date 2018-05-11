@@ -84,8 +84,7 @@
 </template>
 
 <script>
-  // TODO: 提供服务小右箭头
-  import '../../assets/icon/iconfont.css'
+
   // TODO: 添加联系客服
   export default {
     name: 'register',
